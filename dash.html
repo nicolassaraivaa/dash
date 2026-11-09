@@ -1,0 +1,742 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Limpeza MAB</title>
+<style>
+  :root {
+    color-scheme: light;
+    --vinho: #B81237; --vinho-esc: #8E0E2B; --vinho-claro: #F7E3E8;
+    --verde: #1E5B2E; --verde-claro: #E3F0E6;
+    --ambar: #D4A017; --ambar-claro: #FBF3D9; --ambar-esc: #6E5200;
+    --tinta: #1F1F1F; --tinta-2: #4A4A4A; --tinta-3: #6B6B6B;
+    --linha: #E4E4E7; --grade: #ECECEF; --fundo: #F3F3F5; --card: #FFFFFF;
+    --sombra: 0 1px 2px rgba(0,0,0,.06), 0 2px 8px rgba(0,0,0,.04);
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--fundo); color: var(--tinta);
+    font-family: "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif; font-size: 14px; }
+  .topo { background: var(--vinho); color: #fff; height: 56px; display: flex; align-items: center;
+    justify-content: space-between; padding: 0 24px; }
+  .marca { font-size: 24px; font-weight: 700; letter-spacing: -.5px; }
+  .painel-nome { font-size: 13px; opacity: .92; }
+  main { max-width: 1480px; margin: 0 auto; padding: 20px 24px 32px; }
+
+  .titulo { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px;
+    flex-wrap: wrap; margin-bottom: 14px; }
+  h1 { font-size: 22px; margin: 0; font-weight: 600; }
+  .sub { color: var(--tinta-3); font-size: 13px; margin-top: 3px; }
+  .acoes { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .chip { background: #fff; border: 1px solid var(--linha); border-radius: 999px; padding: 6px 12px;
+    font-size: 12.5px; color: var(--tinta-2); white-space: nowrap; }
+  .chip b { color: var(--tinta); font-weight: 600; }
+  .btn { font: inherit; font-size: 13px; font-weight: 600; border-radius: 8px; padding: 8px 14px;
+    cursor: pointer; border: 1px solid var(--vinho); }
+  .btn-pri { background: var(--vinho); color: #fff; }
+  .btn-pri:hover { background: var(--vinho-esc); }
+  .btn-sec { background: #fff; color: var(--vinho); }
+  .btn-sec:hover { background: var(--vinho-claro); }
+  .btn:focus-visible, summary:focus-visible, th:focus-visible { outline: 2px solid var(--vinho); outline-offset: 2px; }
+
+  .banner { border-radius: 8px; padding: 10px 14px; font-size: 13px; margin-bottom: 14px; line-height: 1.45; }
+  .banner-ex { background: var(--ambar-claro); color: var(--ambar-esc); border: 1px solid #EED89A; }
+  .banner-erro { background: var(--vinho-claro); color: var(--vinho-esc); border: 1px solid #E9B9C5; }
+  details.avisos { background: #fff; border: 1px solid #EED89A; border-radius: 8px; margin-bottom: 14px; }
+  details.avisos summary { padding: 9px 14px; cursor: pointer; font-size: 13px; font-weight: 600; color: var(--ambar-esc); }
+  details.avisos ul { margin: 0; padding: 0 14px 10px 32px; font-size: 12.5px; color: var(--tinta-2); line-height: 1.6; }
+
+  .lados { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; align-items: start; }
+  @media (max-width: 1100px) { .lados { grid-template-columns: 1fr; gap: 32px; } }
+  .lado { container-type: inline-size; min-width: 0; }
+  .lado-cab { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+    border-left: 4px solid var(--vinho); padding-left: 10px; margin-bottom: 12px; }
+  h2 { font-size: 19px; margin: 0; font-weight: 600; }
+  .meta { color: var(--tinta-3); font-size: 12px; }
+
+  .cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-bottom: 12px; }
+  @container (max-width: 470px) { .cards { grid-template-columns: 1fr; } }
+  .card, .painel, details.detalhe { background: var(--card); border-radius: 10px; box-shadow: var(--sombra); }
+  .card { padding: 14px 16px; }
+  .card-rot { font-size: 12.5px; color: var(--tinta-2); font-weight: 600; }
+  .card-val { font-size: 30px; font-weight: 600; line-height: 1.15; margin: 6px 0 4px; }
+  .card-sub { font-size: 12px; color: var(--tinta-3); line-height: 1.4; }
+  .card-sub .var { min-width: 0; }
+  .bom { color: var(--verde); }
+  .ruim { color: var(--vinho); }
+  .neutro { color: var(--tinta-3); }
+
+  .painel { padding: 14px 16px 12px; margin-bottom: 12px; }
+  .painel-cab { display: flex; justify-content: space-between; align-items: baseline; gap: 4px 8px; flex-wrap: wrap; margin-bottom: 6px; }
+  h3 { font-size: 14px; margin: 0; font-weight: 600; }
+  .nota { font-size: 11.5px; color: var(--tinta-3); white-space: nowrap; }
+  .grafico { height: 230px; position: relative; }
+  .grafico svg { display: block; overflow: visible; }
+  .grafico text { font-family: inherit; }
+  .eixo { font-size: 11px; fill: var(--tinta-3); }
+  .rot-ponto { font-size: 12.5px; font-weight: 600; fill: var(--tinta); }
+
+  .pares { display: grid; grid-template-columns: 1fr; gap: 12px; margin-bottom: 12px; }
+  .pares .painel { margin-bottom: 0; }
+  .pares > * { min-width: 0; }
+  @container (min-width: 620px) { .pares { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } }
+
+  .lin { padding: 7px 0; border-top: 1px solid var(--grade); }
+  .lin:first-child { border-top: 0; }
+  .lin-topo { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+  .nome { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .num { font-variant-numeric: tabular-nums; font-weight: 600; white-space: nowrap; }
+  .de-para { font-variant-numeric: tabular-nums; color: var(--tinta-2); white-space: nowrap; font-size: 12.5px; }
+  .var { font-variant-numeric: tabular-nums; font-size: 12px; font-weight: 600; min-width: 56px;
+    text-align: right; white-space: nowrap; }
+  .barra { height: 8px; margin-top: 5px; }
+  .barra span { display: block; height: 100%; background: var(--vinho); border-radius: 0 4px 4px 0; min-width: 2px; }
+  .badge { font-size: 10.5px; font-weight: 600; padding: 2px 6px; border-radius: 4px; white-space: nowrap; }
+  .b-legado { background: var(--vinho-claro); color: var(--vinho-esc); }
+  .b-desc { background: var(--ambar-claro); color: var(--ambar-esc); }
+  .b-uso, .b-auto { background: #EEEEF0; color: var(--tinta-2); }
+  .vazio { color: var(--tinta-3); font-size: 13px; padding: 10px 0 6px; }
+  .vazio.ok { color: var(--verde); }
+
+  details.detalhe summary { padding: 12px 16px; cursor: pointer; font-weight: 600; font-size: 13px; color: var(--vinho); }
+  .filtro { margin: 0 16px 8px; padding: 6px 10px; border: 1px solid var(--linha); border-radius: 6px;
+    font: inherit; font-size: 13px; width: min(280px, calc(100% - 32px)); }
+  .tabela-wrap { overflow-x: auto; padding: 0 16px 14px; }
+  table { border-collapse: collapse; width: 100%; font-size: 12.5px; }
+  th { text-align: left; font-weight: 600; color: var(--tinta-2); border-bottom: 1px solid var(--linha);
+    padding: 6px 8px; white-space: nowrap; cursor: pointer; user-select: none; }
+  th[aria-sort="ascending"]::after { content: " ↑"; }
+  th[aria-sort="descending"]::after { content: " ↓"; }
+  td { padding: 5px 8px; border-bottom: 1px solid #F1F1F3; white-space: nowrap; }
+  .n { text-align: right; font-variant-numeric: tabular-nums; }
+  tr.fora td { color: var(--tinta-3); }
+  .tag-fora { font-size: 10.5px; color: var(--tinta-3); border: 1px solid var(--linha); border-radius: 4px;
+    padding: 0 4px; margin-left: 6px; }
+
+  footer { margin-top: 22px; color: var(--tinta-3); font-size: 12px; line-height: 1.6; }
+  .tooltip { position: fixed; pointer-events: none; background: #1F1F1F; color: #fff; font-size: 12px;
+    padding: 6px 9px; border-radius: 6px; z-index: 10; white-space: nowrap; line-height: 1.4; }
+  .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #1F1F1F; color: #fff;
+    padding: 10px 16px; border-radius: 8px; font-size: 13px; z-index: 11; max-width: calc(100% - 32px); }
+
+  @media (max-width: 600px) {
+    main { padding: 14px 16px 24px; }
+    .topo { padding: 0 16px; }
+    .painel-nome { display: none; }
+    .card-val { font-size: 26px; }
+  }
+  @media print { .acoes .btn, .filtro { display: none; } body { background: #fff; } }
+</style>
+</head>
+<body>
+<header class="topo">
+  <span class="marca">bradesco</span>
+  <span class="painel-nome">Painel Indicadores – Proteção de Redes</span>
+</header>
+<main>
+  <div class="titulo">
+    <div>
+      <h1>Limpeza de grupos MAB – Cisco ISE</h1>
+      <div class="sub">Endpoints autenticados por MAB (exceção ao 802.1X) · quanto menor, mais seguro</div>
+    </div>
+    <div class="acoes">
+      <span class="chip" id="chip"></span>
+      <button class="btn btn-pri" id="btn-atualizar" type="button" title="Escolher a planilha Inventário de grupos e recalcular o painel">Atualizar</button>
+      <button class="btn btn-sec" id="btn-salvar" type="button" title="Gerar este HTML com os dados atuais embutidos, para subir no OneDrive">Salvar</button>
+      <input type="file" id="arquivo" accept=".xlsx,.xlsm" hidden>
+    </div>
+  </div>
+  <div id="mensagens"></div>
+  <div class="lados">
+    <section class="lado" id="lado-ag" aria-label="Agências"></section>
+    <section class="lado" id="lado-dp" aria-label="Departamentos"></section>
+  </div>
+  <footer id="rodape"></footer>
+</main>
+<div class="tooltip" id="tooltip" hidden></div>
+<script id="dados" type="application/json">{"exemplo": true, "fonte": "prints da planilha Inventário de grupos (parcial)", "carregadoEm": "2026-11-09T16:50:00-03:00", "avisosLeitura": [], "ambientes": {"Agências": {"datas": ["2026-07-20", "2026-09-20", "2026-10-20", "2026-10-28"], "grupos": [{"g": "Android", "u": "", "f": "Legado", "p": "150 dias", "c": null, "v": [0, 0, 0, null]}, {"g": "Apple-iDevice", "u": "", "f": "Legado", "p": "150 dias", "c": null, "v": [0, 0, 0, null]}, {"g": "Axis-Device", "u": "", "f": "Legado", "p": "150 dias", "c": null, "v": [0, 0, 0, null]}, {"g": "BlackBerry", "u": "", "f": "Legado", "p": "150 dias", "c": null, "v": [0, 0, 0, null]}, {"g": "Blocked List", "u": "", "f": "Utilizado para bloquear um dispositivo a solicitação do SOC", "p": "150 dias", "c": null, "v": [0, 0, 0, null]}, {"g": "BRA_AP_Motorola", "u": "", "f": "Legado", "p": "150 dias", "c": null, "v": [0, 0, 0, null]}, {"g": "BRA_BDN_TEMP", "u": "", "f": "Legado", "p": "150 dias", "c": null, "v": [0, 3, 2, null]}, {"g": "BRA_Blacklist", "u": "", "f": "Legado", "p": "150 dias", "c": null, "v": [0, 0, 0, null]}, {"g": "BRA_CAMERA_IP", "u": "BRA_WIRED-Agencia_Moderna, BRA_WIRED_Cisco - Macsec", "f": "Legado", "p": "150 dias", "c": null, "v": [29, 199, 329, null]}, {"g": "BRA_CFTV", "u": "BRA_WIRED_Huawei - Definitivo, BRA_WIRED-Agencia_Moderna, BRA_WIRED_Cisco - Macsec, BRA_WIRED_Cisco - Trustsec, BRA_WIRED_Cisco - Definitivo", "f": "Utilizado para os equipamentos de CFTV que não suportão 802.1x", "p": "150 dias", "c": null, "v": [3049, 3100, 3198, null]}, {"g": "BRA_NO-BREAK", "u": "BRA_WIRED_Huawei - Definitivo, BRA_WIRED_Cisco - Macsec, BRA_WIRED_Cisco - Trustsec, BRA_WIRED_Cisco - Definitivo", "f": "Utilizado para os equipamentos de NOBREAK que não suportão 802.1x", "p": "150 dias", "c": null, "v": [229, 225, 222, null]}, {"g": "BRA_NO-BREAK_rollout", "u": "", "f": "Legado", "p": "150 dias", "c": null, "v": [0, 0, 0, null]}, {"g": "BRA_Printers", "u": "BRA_WIRED_Huawei - Definitivo, BRA_WIRED-Agencia_Moderna, BRA_WIRED_Cisco - Macsec, BRA_WIRED_Cisco - Trustsec, BRA_WIRED_Cisco - Definitivo", "f": "Utilizado para manutenção das impressoras", "p": "150 dias", "c": null, "v": [17, 17, 17, null]}, {"g": "BRA_Printers_rollout", "u": "", "f": "Legado", "p": "150 dias", "c": null, "v": [0, 0, 0, null]}, {"g": "BRA_Relogio_Ponto", "u": "BRA_WIRED_Losango - Definitiva, BRA_WIRED_Huawei - Definitivo, BRA_WIRED-Agencia_Moderna, BRA_WIRED_Cisco - Macsec, BRA_WIRED_Cisco - Trustsec, BRA_WIRED_Cisco - Definitivo", "f": "Utilizado para os Relogios de ponto que não suportão 802.1x", "p": "150 dias", "c": null, "v": [2073, 1715, 1687, null]}, {"g": "BRA_Relogio_Ponto_rollout", "u": "", "f": "Legado", "p": "150 dias", "c": null, "v": [0, 0, 0, null]}, {"g": "BRA_Repositorio_Losango", "u": "BRA_WIRED_Losango - Definitiva", "f": "Legado", "p": "150 dias", "c": null, "v": [0, 0, 0, null]}, {"g": "BRA_Servers", "u": "BRA_WIRED_Huawei - Definitivo, BRA_WIRED-Agencia_Moderna, BRA_WIRED_Cisco - Macsec, BRA_WIRED_Cisco - Trustsec, BRA_WIRED_Cisco - Definitivo", "f": "Utilizado para os Servidores que não suportão 802.1x", "p": "150 dias", "c": null, "v": [2, 2, 2, null]}, {"g": "BRA_SUPLIC_PROV", "u": "BRA_WIRED_Huawei - Definitivo", "f": "Legado", "p": "45 dias", "c": null, "v": [0, 0, 0, null]}, {"g": "BRA_Whitelist", "u": "", "f": "Legado", "p": "150 dias", "c": null, "v": [0, 0, 0, null]}, {"g": "BRA-ACCESSPOINT", "u": "BRA_WIRED_Huawei - Definitivo, BRA_WIRED-Agencia_Moderna, BRA_WIRED_Cisco - Macsec, BRA_WIRED_Cisco - Trustsec, BRA_WIRED_Cisco - Definitivo", "f": "Utilizado para manutenção de Acces Point", "p": "150 dias", "c": null, "v": [60, 69, 69, null]}, {"g": "BRA-ALARME", "u": "BRA_WIRED_Huawei - Definitivo, BRA_WIRED-Agencia_Moderna, BRA_WIRED_Cisco - Macsec, BRA_WIRED_Cisco - Trustsec, BRA_WIRED_Cisco - Definitivo", "f": "Utilizado para os equipamentos de Alarme que não suportão 802.1x", "p": "150 dias", "c": null, "v": [2534, 2528, 2569, null]}, {"g": "BRA-BDN", "u": "BRA_WIRED_Huawei - Definitivo, BRA_WIRED-Agencia_Moderna, BRA_WIRED_Cisco - Macsec, BRA_WIRED_Cisco - Trustsec, BRA_WIRED_Cisco - Definitivo", "f": "Utilizado para manutenção dos BDNs", "p": "150 dias", "c": null, "v": [6454, 6487, 6478, null]}, {"g": "BRA-CFTV_copy", "u": "", "f": "Legado", "p": "150 dias", "c": null, "v": [1, 1, 1, null]}, {"g": "BRA-EXT_DPTO", "u": "BRA_WIRED_Huawei - Definitivo, BRA_WIRED-Agencia_Moderna, BRA_WIRED_Cisco - Macsec, BRA_WIRED_Cisco - Trustsec, BRA_WIRED_Cisco - Definitivo", "f": "Atendimento estações VLAN 4 DPTO", "p": "150 dias", "c": null, "v": [118, 118, 119, null]}, {"g": "BRA-HELPDESK-TEMP", "u": "BRA_WIRED_Losango - Definitiva, BRA_WIRED_Huawei - Definitivo, BRA_WIRED-Agencia_Moderna, BRA_WIRED_Cisco - Macsec, BRA_WIRED_Cisco - Trustsec, BRA_WIRED_Cisco - Definitivo", "f": "Atendimento estações com erro de certificado", "p": "1 dia", "c": null, "v": [18909, 7243, 2712, null]}, {"g": "BRA-IOT", "u": "BRA_WIRED-Agencia_Moderna, BRA_WIRED_Cisco - Macsec", "f": "Criado recente", "p": "150 dias", "c": null, "v": [0, 0, 0, null]}, {"g": "BRA-IOT-ALARME", "u": "", "f": "Criado recente", "p": "150 dias", "c": null, "v": [0, 0, 0, null]}, {"g": "BRA-IOT-CAMERA", "u": "BRA_WIRED_Cisco - Macsec", "f": "Criado recente", "p": "150 dias", "c": null, "v": [2, 2, 2, null]}]}, "Departamentos": {"datas": ["2026-07-20", "2026-09-20", "2026-10-20", "2026-10-28"], "grupos": [{"g": "Blocked List", "u": "Default", "f": "Em uso", "p": "Não", "c": null, "v": [33, 33, 33, null]}, {"g": "BRA_Guest", "u": "", "f": "LEGADO", "p": "365 dias", "c": null, "v": [0, 0, 0, null]}, {"g": "BRA-ACCESS-POINT_MUSTNOT", "u": "BRA_WIRED - Wired-Dot1x - TrustSec, BRA_WIRED - Wired-Dot1x", "f": "Utilizado na implantação do MACSEC, para as antenas WIFI que não suportam MACSEC", "p": "30 dias", "c": null, "v": [86, 83, 83, null]}, {"g": "BRA-Blacklist", "u": "BRA_WIRED - 802.1x TESTE MAB, BRA_WIRED - Wired-MAB - TrustSec, BRA_WIRED - Wired-MAB, BRA_WIRED - Wired-Dot1x - TrustSec, BRA_WIRED - Wired-Dot1x, BRA_WIRED - Default", "f": "Utilizado para bloquear algum MAC suspeito", "p": "Não", "c": null, "v": [292, 292, 292, null]}, {"g": "BRA-Blacklist-Soc", "u": "", "f": "Utilizado para bloquear MAC apontado pelo SOC", "p": "Não", "c": null, "v": [2, 5, 5, null]}, {"g": "BRA-Cameras", "u": "BRA_WIRED - 802.1x TESTE MAB, BRA_WIRED - Wired-MAB - TrustSec, BRA_WIRED - Wired-MAB, BRA_WIRED - Wired-Dot1x - TrustSec, BRA_WIRED - Wired-Dot1x, BRA_WIRED - Default", "f": "LEGADO", "p": "30 dias", "c": null, "v": [12, 32, 27, null]}, {"g": "BRA-CFTV", "u": "BRA_WIRED - Wired-MAB - TrustSec, BRA_WIRED - Wired-Dot1x - TrustSec", "f": "LEGADO", "p": "Não", "c": null, "v": [1, 10, 22, null]}, {"g": "BRA-HARDENING-PROV", "u": "BRA_WIRED - Wired-Dot1x - TrustSec, BRA_WIRED - Wired-Dot1x, BRA_WIRELESS - Wireless-Dot1x", "f": "Desconheço a utilidade deste profile.", "p": "Não", "c": null, "v": [8, 8, 8, null]}, {"g": "BRA-HelpDesk-Portal", "u": "BRA_WIRED - 802.1x TESTE MAB, BRA_WIRED - Wired-MAB - TrustSec, BRA_WIRED - Wired-MAB, BRA_WIRED - Wired-Dot1x - TrustSec, BRA_WIRED - Wired-Dot1x, BRA_WIRED - Default", "f": "LEGADO", "p": "1 dia", "c": null, "v": [0, 0, 0, null]}, {"g": "BRA-MACSEC-MAB", "u": "BRA_LUX_WIRED_Dot1x, BRA_NY_WIRED_Dot1x, BRA_WIRED - Wired-Dot1x - TrustSec, BRA_WIRED - Wired-Dot1x", "f": "Utilizado na implantação do MACSEC, para as maquinas que ainda não tinham o Cisco Client", "p": "30 dias", "c": null, "v": [5967, 2849, 2506, null]}, {"g": "BRA-MACSEC-MAB-PURGE", "u": "BRA_LUX_WIRED_Dot1x, BRA_LUX_WIRED_MAB, BRA_WIRED - Wired-Dot1x - TrustSec, BRA_WIRED - Wired-Dot1x", "f": "Utilizado na implantação do MACSEC, para as maquinas que ainda não tinham o Cisco Client", "p": "3 dias", "c": null, "v": [0, 0, 1, null]}, {"g": "BRA-Relogio_Ponto-Device", "u": "BRA_WIRED - 802.1x TESTE MAB, BRA_WIRED - Wired-MAB - TrustSec, BRA_WIRED - Wired-MAB, BRA_WIRED - Wired-Dot1x - TrustSec, BRA_WIRED - Wired-Dot1x, BRA_WIRED - Default", "f": "LEGADO", "p": "30 dias", "c": null, "v": [1, 1, 0, null]}, {"g": "BRA-Relogio_Ponto-Device", "u": "BRA_WIRED - 802.1x TESTE MAB, BRA_WIRED - Wired-MAB - TrustSec, BRA_WIRED - Wired-MAB, BRA_WIRED - Wired-Dot1x - TrustSec, BRA_WIRED - Wired-Dot1x, BRA_WIRED - Default", "f": "LEGADO", "p": "30 dias", "c": null, "v": [0, 0, 2, null]}, {"g": "BRA-Video-Device", "u": "", "f": "LEGADO", "p": "30 dias", "c": null, "v": [0, 0, 0, null]}, {"g": "BRA-Whitelist", "u": "BRA_WIRED - 802.1x TESTE MAB, BRA_WIRED - Wired-MAB - TrustSec, BRA_WIRED - Wired-MAB, BRA_WIRED - Wired-Dot1x - TrustSec, BRA_WIRED - Wired-Dot1x, BRA_WIRED - Default", "f": "LEGADO", "p": "Não", "c": null, "v": [73, 74, 74, null]}, {"g": "Cisco-IP-Phone", "u": "Default", "f": "LEGADO", "p": "30 dias", "c": null, "v": [324, 337, 325, null]}, {"g": "GuestEndpoints", "u": "", "f": "LEGADO", "p": "365 dias", "c": null, "v": [0, 0, 0, null]}, {"g": "MAB_AUDIOCONFERENCE", "u": "BRA_WIRED - 802.1x TESTE MAB, BRA_WIRED - Wired-MAB - TrustSec, BRA_WIRED - Wired-MAB, BRA_WIRED - Wired-Dot1x - TrustSec, BRA_WIRED - Wired-Dot1x, BRA_WIRED - Default", "f": "Utilizado para suporte aos audio conference", "p": "30 dias", "c": null, "v": [1, 4, 6, null]}, {"g": "MAB_BDN", "u": "BRA_WIRED - 802.1x TESTE MAB, BRA_WIRED - Wired-MAB - TrustSec, BRA_WIRED - Wired-MAB, BRA_WIRED - Wired-Dot1x - TrustSec, BRA_WIRED - Wired-Dot1x, BRA_WIRED - Default", "f": "Utilizado para suporte ao BDN que apresentava erro de autenticação", "p": "30 dias", "c": null, "v": [4, 4, 4, null]}, {"g": "MAB_BRAM", "u": "BRA_WIRED - 802.1x TESTE MAB, BRA_WIRED - Wired-MAB - TrustSec, BRA_WIRED - Wired-MAB, BRA_WIRED - Wired-Dot1x - TrustSec, BRA_WIRED - Wired-Dot1x, BRA_WIRED - Default", "f": "Desconheço a utilidade deste profile.", "p": "30 dias", "c": null, "v": [3, 3, 3, null]}, {"g": "MAB_CFTV_CAMERA", "u": "", "f": "Utilizado para liberar os Cameras e CFTV que não suportam 802.1x", "p": "Não", "c": null, "v": [0, 2, 2, null]}, {"g": "MAB_DAC", "u": "BRA_WIRED - 802.1x TESTE MAB, BRA_WIRED - Wired-MAB - TrustSec, BRA_WIRED - Wired-MAB, BRA_WIRED - Wired-Dot1x - TrustSec, BRA_WIRED - Wired-Dot1x, BRA_WIRED - Default", "f": "Utilizado para servidores do DAC que não suporta 802.1x", "p": "30 dias", "c": null, "v": [16, 16, 16, null]}, {"g": "MAB_DCD", "u": "", "f": "Utilizado para suporte ao DCD", "p": "30 dias", "c": null, "v": [50, 49, 49, null]}, {"g": "MAB_DDS", "u": "BRA_WIRED - 802.1x TESTE MAB, BRA_WIRED - Wired-MAB - TrustSec, BRA_WIRED - Wired-MAB, BRA_WIRED - Wired-Dot1x - TrustSec, BRA_WIRED - Wired-Dot1x, BRA_WIRED - Default", "f": "Desconheço a utilidade deste profile.", "p": "30 dias", "c": null, "v": [147, 146, 145, null]}]}}}</script>
+<script>
+'use strict';
+// Cópia do HTML antes de qualquer desenho: é a base do botão Salvar.
+const ORIGINAL = '<!doctype html>\n' + document.documentElement.outerHTML;
+
+// ================= CONFIGURAÇÃO (pode editar) =================
+const CONFIG = {
+  // Grupos automáticos do ISE: ficam fora dos totais.
+  automaticos: ['Profiled', 'Unknown', 'Workstation', 'RegisteredDevices'],
+  // Grupos de bloqueio: ficam fora dos totais (esvaziar não reduz a exposição).
+  bloqueio: /blacklist|blocked\s*list/i,
+  ambientes: [
+    { nome: 'Agências', id: 'lado-ag', aba: /agenc/ },
+    { nome: 'Departamentos', id: 'lado-dp', aba: /depart/ },
+  ],
+  maxAtencao: 6,
+  nomeArquivo: 'Painel_Limpeza_MAB.html',
+};
+// ==============================================================
+
+let DADOS = JSON.parse(document.getElementById('dados').textContent);
+const GRAFICOS = new Map();
+
+// ---------- utilitários ----------
+const nf = new Intl.NumberFormat('pt-BR');
+const nfc = new Intl.NumberFormat('pt-BR', { notation: 'compact', maximumFractionDigits: 1 });
+const fmt = n => nf.format(n);
+const pct = x => (Math.abs(x) * 100).toFixed(1).replace('.', ',') + '%';
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const semAcento = s => String(s ?? '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
+const dataBR = iso => iso.slice(8, 10) + '/' + iso.slice(5, 7) + '/' + iso.slice(0, 4);
+const dataCurta = iso => iso.slice(8, 10) + '/' + iso.slice(5, 7);
+const tempo = iso => Date.UTC(+iso.slice(0, 4), +iso.slice(5, 7) - 1, +iso.slice(8, 10));
+const MENOS = '−';
+
+function categoria(g) {
+  if (CONFIG.automaticos.some(a => a.toLowerCase() === String(g.g).toLowerCase())) return 'Automático';
+  const base = semAcento(g.c || g.f);
+  if (base.includes('autom')) return 'Automático';
+  if (base.includes('legado')) return 'Legado';
+  if (base.includes('desconhe')) return 'Desconhecido';
+  return 'Em uso';
+}
+function motivoFora(g) {
+  if (CONFIG.automaticos.some(a => a.toLowerCase() === String(g.g).toLowerCase())) return 'automático';
+  if (CONFIG.bloqueio.test(g.g)) return 'bloqueio';
+  return null;
+}
+function purgeTxt(p) {
+  const s = semAcento(p);
+  if (!s || s === 'nao' || s.startsWith('sem')) return 'Sem purge';
+  const m = s.match(/^(\d+)\s*(d|dia|dias)?$/);
+  if (m) return m[1] + (m[1] === '1' ? ' dia' : ' dias');
+  return String(p).trim();
+}
+function badge(cat) {
+  const cls = { 'Legado': 'b-legado', 'Desconhecido': 'b-desc', 'Automático': 'b-auto' }[cat] || 'b-uso';
+  return `<span class="badge ${cls}">${esc(cat)}</span>`;
+}
+function varHtml(d, novo) {
+  if (novo) return '<span class="var neutro">novo</span>';
+  if (d === null || d === undefined) return '<span class="var neutro">–</span>';
+  if (d < 0) return `<span class="var bom" title="caiu ${fmt(-d)}">▼ ${fmt(-d)}</span>`;
+  if (d > 0) return `<span class="var ruim" title="subiu ${fmt(d)}">▲ ${fmt(d)}</span>`;
+  return '<span class="var neutro" title="sem variação">0</span>';
+}
+function passoBonito(bruto) {
+  const p = Math.pow(10, Math.floor(Math.log10(Math.max(bruto, 1))));
+  const n = bruto / p;
+  return (n <= 1 ? 1 : n <= 2 ? 2 : n <= 2.5 ? 2.5 : n <= 5 ? 5 : 10) * p;
+}
+
+// ---------- análise de um ambiente ----------
+function analisar(amb) {
+  const datas = amb.datas;
+  const grupos = amb.grupos.map(g => ({ ...g, cat: categoria(g), fora: motivoFora(g) }));
+  const val = (g, i) => (i === null || i === undefined) ? null : (typeof g.v[i] === 'number' ? g.v[i] : null);
+  const idx = datas.map((_, i) => i).filter(i => grupos.some(g => val(g, i) !== null));
+  const dentro = grupos.filter(g => !g.fora);
+  const serie = idx.map(i => ({ data: datas[i], i, total: dentro.reduce((s, g) => s + (val(g, i) ?? 0), 0) }));
+  const ult = idx.length ? idx[idx.length - 1] : null;
+  const ant = idx.length > 1 ? idx[idx.length - 2] : null;
+  const ini = idx.length ? idx[0] : null;
+
+  const top = dentro.filter(g => (val(g, ult) ?? 0) > 0)
+    .sort((a, b) => val(b, ult) - val(a, ult)).slice(0, 5)
+    .map(g => ({ g, atual: val(g, ult), d: ant === null || val(g, ant) === null ? null : val(g, ult) - val(g, ant), novo: ant !== null && val(g, ant) === null }));
+
+  const atencao = ant === null ? [] : dentro.map(g => {
+    const a = val(g, ult) ?? 0, p = val(g, ant);
+    return { g, atual: a, antes: p, d: p === null ? a : a - p, novo: p === null && a > 0 };
+  }).filter(x => x.d > 0).sort((x, y) => y.d - x.d).slice(0, CONFIG.maxAtencao);
+
+  const candidatos = grupos.filter(g => (g.cat === 'Legado' || g.cat === 'Desconhecido') && (val(g, ult) ?? 0) === 0).length;
+
+  const avisos = [];
+  const cont = {};
+  grupos.forEach(g => { cont[g.g] = (cont[g.g] || 0) + 1; });
+  const dup = Object.keys(cont).filter(k => cont[k] > 1);
+  if (dup.length) avisos.push(`grupo com nome repetido: ${dup.join(', ')} — confira o nome real no ISE`);
+  idx.forEach((i, k) => {
+    if (k === 0) return;
+    const p = idx[k - 1];
+    const faltando = grupos.filter(g => val(g, p) !== null && val(g, i) === null).length;
+    if (faltando) avisos.push(`batimento ${dataBR(datas[i])}: ${faltando} grupo(s) sem valor — o total dessa data fica menor do que deveria`);
+  });
+
+  return { datas, grupos, val, idx, serie, ult, ant, ini, top, atencao, candidatos, avisos,
+    nForaTotal: grupos.length - dentro.length };
+}
+
+// ---------- desenho ----------
+function renderTudo() {
+  const msgs = [];
+  const analises = {};
+  let ultimaGlobal = null;
+  for (const amb of CONFIG.ambientes) {
+    const bruto = DADOS.ambientes && DADOS.ambientes[amb.nome];
+    const el = document.getElementById(amb.id);
+    if (!bruto || !bruto.grupos.length) {
+      el.innerHTML = `<div class="lado-cab"><h2>${esc(amb.nome)}</h2></div><div class="painel vazio">Sem dados dessa aba na planilha.</div>`;
+      continue;
+    }
+    const A = analisar(bruto);
+    analises[amb.nome] = A;
+    if (A.ult !== null && (!ultimaGlobal || A.datas[A.ult] > ultimaGlobal)) ultimaGlobal = A.datas[A.ult];
+    renderLado(el, amb.nome, A);
+  }
+  document.getElementById('mensagens').innerHTML = msgs.join('');
+  document.getElementById('chip').innerHTML = ultimaGlobal
+    ? `Último batimento: <b>${dataBR(ultimaGlobal)}</b> · semanal` : 'Sem batimentos';
+  const quando = DADOS.carregadoEm ? new Date(DADOS.carregadoEm) : null;
+  const quandoTxt = quando && !isNaN(quando) ? quando.toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' }) : '–';
+  document.getElementById('rodape').innerHTML =
+    `<div><b>Fora dos totais:</b> grupos automáticos do ISE (${CONFIG.automaticos.map(esc).join(', ')}) e grupos de bloqueio (Blacklist, Blocked List), porque esvaziá-los não reduz a exposição. Eles aparecem na lista completa de cada lado.</div>` +
+    `<div><b>Grupos legado vazios:</b> grupos marcados como Legado ou de utilidade desconhecida com 0 endpoints no último batimento.</div>` +
+    `<div><b>Base:</b> ${esc(DADOS.fonte || '–')} · carregada em ${quandoTxt}. Para atualizar: <b>Atualizar</b> → escolher a planilha → <b>Salvar</b> → substituir o arquivo no OneDrive.</div>`;
+}
+
+function renderLado(el, nome, A) {
+  const { val, ult, ant, ini, datas } = A;
+  const atual = A.serie.length ? A.serie[A.serie.length - 1].total : 0;
+  const tAnt = ant !== null ? A.serie[A.serie.length - 2].total : null;
+  const tIni = A.serie.length ? A.serie[0].total : null;
+
+  let sub1 = 'primeiro batimento';
+  if (tAnt !== null) {
+    const d = atual - tAnt;
+    const pc = tAnt ? ` (${d < 0 ? MENOS : d > 0 ? '+' : ''}${pct(d / tAnt)})` : '';
+    sub1 = d === 0 ? `sem variação vs ${dataCurta(datas[ant])}`
+      : `<span class="${d < 0 ? 'bom' : 'ruim'}">${d < 0 ? '▼' : '▲'} ${fmt(Math.abs(d))}${pc}</span> vs ${dataCurta(datas[ant])}`;
+  }
+  let rot2 = 'Redução desde o início', val2 = '—', cls2 = 'neutro', sub2 = 'precisa de 2 batimentos';
+  if (A.serie.length > 1) {
+    const d = atual - tIni;
+    rot2 = d > 0 ? `Aumento desde ${dataCurta(datas[ini])}` : `Redução desde ${dataCurta(datas[ini])}`;
+    val2 = d === 0 ? '0' : `${d < 0 ? '▼' : '▲'} ${fmt(Math.abs(d))}`;
+    cls2 = d < 0 ? 'bom' : d > 0 ? 'ruim' : 'neutro';
+    sub2 = `${d < 0 ? MENOS : d > 0 ? '+' : ''}${tIni ? pct(d / tIni) : '–'} · era ${fmt(tIni)} em ${dataCurta(datas[ini])}`;
+  }
+  const refVar = ant !== null ? `var. vs ${dataCurta(datas[ant])}` : '';
+
+  const topHtml = A.top.length ? A.top.map(t => `
+      <div class="lin">
+        <div class="lin-topo"><span class="nome" title="${esc(t.g.g)}">${esc(t.g.g)}</span><span class="num">${fmt(t.atual)}</span>${varHtml(t.d, t.novo)}</div>
+        <div class="barra"><span style="width:${(t.atual / A.top[0].atual * 100).toFixed(1)}%"></span></div>
+      </div>`).join('') : '<div class="vazio">Nenhum grupo com endpoints.</div>';
+
+  let atHtml;
+  if (ant === null) atHtml = '<div class="vazio">Precisa de 2 batimentos para comparar.</div>';
+  else if (!A.atencao.length) atHtml = `<div class="vazio ok">✓ Nenhum grupo cresceu entre ${dataCurta(datas[ant])} e ${dataCurta(datas[ult])}.</div>`;
+  else atHtml = A.atencao.map(x => `
+      <div class="lin">
+        <div class="lin-topo"><span class="nome" title="${esc(x.g.g)}">${esc(x.g.g)}</span>${x.g.cat === 'Legado' || x.g.cat === 'Desconhecido' ? badge(x.g.cat) : ''}<span class="de-para">${x.novo ? 'novo' : fmt(x.antes)} → ${fmt(x.atual)}</span>${varHtml(x.d, false)}</div>
+      </div>`).join('');
+
+  el.innerHTML = `
+    <div class="lado-cab">
+      <h2>${esc(nome)}</h2>
+      <span class="meta">${ult !== null ? 'Batimento ' + dataBR(datas[ult]) + ' · ' : ''}${A.grupos.length} grupos · ${A.nForaTotal} fora do total</span>
+    </div>
+    <div class="cards">
+      <div class="card">
+        <div class="card-rot">Endpoints em MAB</div>
+        <div class="card-val">${fmt(atual)}</div>
+        <div class="card-sub">${sub1}</div>
+      </div>
+      <div class="card">
+        <div class="card-rot">${rot2}</div>
+        <div class="card-val ${cls2}">${val2}</div>
+        <div class="card-sub">${sub2}</div>
+      </div>
+      <div class="card">
+        <div class="card-rot">Grupos legado vazios</div>
+        <div class="card-val">${fmt(A.candidatos)}</div>
+        <div class="card-sub">candidatos a exclusão do ISE</div>
+      </div>
+    </div>
+    <div class="painel">
+      <div class="painel-cab"><h3>Evolução – endpoints em MAB</h3><span class="nota">quanto mais baixo, melhor</span></div>
+      <div class="grafico"></div>
+    </div>
+    <div class="pares">
+      <div class="painel">
+        <div class="painel-cab"><h3>Top 5 grupos por volume</h3><span class="nota">${refVar}</span></div>
+        ${topHtml}
+      </div>
+      <div class="painel">
+        <div class="painel-cab"><h3>Atenção: grupos que cresceram</h3><span class="nota">${ant !== null ? dataCurta(datas[ant]) + ' → ' + dataCurta(datas[ult]) : ''}</span></div>
+        ${atHtml}
+      </div>
+    </div>
+    <details class="detalhe">
+      <summary>Ver todos os grupos de ${esc(nome)} (${A.grupos.length})</summary>
+      <input class="filtro" type="search" placeholder="Filtrar por nome do grupo" aria-label="Filtrar grupos de ${esc(nome)}">
+      <div class="tabela-wrap"><table></table></div>
+    </details>`;
+
+  const g = el.querySelector('.grafico');
+  GRAFICOS.set(g, A.serie);
+  desenharGrafico(g, A.serie);
+  observador.observe(g);
+  montarTabela(el.querySelector('details.detalhe'), A);
+}
+
+const observador = new ResizeObserver(entradas => {
+  for (const e of entradas) {
+    const s = GRAFICOS.get(e.target);
+    if (s && Math.abs((e.target._largura || 0) - e.target.clientWidth) > 1) desenharGrafico(e.target, s);
+  }
+});
+
+function desenharGrafico(el, serie) {
+  const W = Math.max(260, el.clientWidth), H = el.clientHeight || 230;
+  el._largura = el.clientWidth;
+  if (!serie.length) { el.innerHTML = '<div class="vazio">Sem batimentos com dados.</div>'; return; }
+  const m = { l: 46, r: 12, t: 30, b: 26 };
+  const iw = W - m.l - m.r, ih = H - m.t - m.b;
+  const ts = serie.map(s => tempo(s.data));
+  const t0 = ts[0], t1 = ts[ts.length - 1];
+  const x = t => serie.length === 1 || t1 === t0 ? m.l + iw / 2 : m.l + (t - t0) / (t1 - t0) * iw;
+  const maxV = Math.max(...serie.map(s => s.total), 1);
+  const passo = passoBonito(maxV / 4);
+  const yMax = Math.ceil(maxV * 1.12 / passo) * passo;
+  const y = v => m.t + ih - v / yMax * ih;
+  const eixoTxt = v => yMax >= 10000 ? nfc.format(v) : fmt(v);
+  const pts = serie.map((s, k) => [x(ts[k]), y(s.total)]);
+
+  let s = `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="img" aria-label="Evolução dos endpoints em MAB: de ${fmt(serie[0].total)} em ${dataBR(serie[0].data)} para ${fmt(serie[serie.length - 1].total)} em ${dataBR(serie[serie.length - 1].data)}">`;
+  for (let v = 0; v <= yMax + 1e-9; v += passo) {
+    const yy = y(v).toFixed(1);
+    s += `<line x1="${m.l}" x2="${W - m.r}" y1="${yy}" y2="${yy}" stroke="#ECECEF" stroke-width="1"/>`;
+    s += `<text class="eixo" x="${m.l - 8}" y="${(+yy + 4).toFixed(1)}" text-anchor="end">${eixoTxt(v)}</text>`;
+  }
+  // rótulos do eixo X, sem sobrepor (o último sempre aparece)
+  const posX = pts.map(p => p[0]);
+  const mostrar = new Array(posX.length).fill(false);
+  mostrar[posX.length - 1] = true;
+  let ultimoX = -Infinity;
+  for (let k = 0; k < posX.length - 1; k++) {
+    if (posX[k] - ultimoX >= 44 && posX[posX.length - 1] - posX[k] >= 44) { mostrar[k] = true; ultimoX = posX[k]; }
+  }
+  posX.forEach((px, k) => {
+    if (!mostrar[k]) return;
+    const anc = k === 0 && serie.length > 1 ? 'start' : (k === posX.length - 1 && serie.length > 1 ? 'end' : 'middle');
+    const dx = anc === 'start' ? -6 : anc === 'end' ? 6 : 0;
+    s += `<text class="eixo" x="${(px + dx).toFixed(1)}" y="${H - 6}" text-anchor="${anc}">${dataCurta(serie[k].data)}</text>`;
+  });
+  if (pts.length > 1) {
+    const linha = pts.map((p, k) => (k ? 'L' : 'M') + p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join(' ');
+    const base = y(0).toFixed(1);
+    s += `<path d="${linha} L${pts[pts.length - 1][0].toFixed(1)} ${base} L${pts[0][0].toFixed(1)} ${base} Z" fill="#B81237" fill-opacity=".09"/>`;
+    s += `<path d="${linha}" fill="none" stroke="#B81237" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`;
+  }
+  s += `<line class="cruz" x1="0" x2="0" y1="${m.t}" y2="${m.t + ih}" stroke="#BDBDC2" stroke-width="1" visibility="hidden"/>`;
+  pts.forEach((p, k) => {
+    const ultimo = k === pts.length - 1;
+    s += `<circle class="pt" cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="${ultimo ? 5.5 : 4}" fill="#B81237" stroke="#fff" stroke-width="2"/>`;
+  });
+  // rótulos de valor: só no primeiro e no último ponto
+  const rotular = serie.length > 1 ? [0, pts.length - 1] : [0];
+  rotular.forEach(k => {
+    const anc = serie.length === 1 ? 'middle' : k === 0 ? 'start' : 'end';
+    const dx = anc === 'start' ? -4 : anc === 'end' ? 4 : 0;
+    s += `<text class="rot-ponto" x="${(pts[k][0] + dx).toFixed(1)}" y="${(pts[k][1] - 12).toFixed(1)}" text-anchor="${anc}">${fmt(serie[k].total)}</text>`;
+  });
+  s += `<rect class="alvo" x="${m.l - 10}" y="0" width="${iw + 20}" height="${H}" fill="transparent"/>`;
+  s += '</svg>';
+  el.innerHTML = s;
+
+  const alvo = el.querySelector('.alvo'), cruz = el.querySelector('.cruz'), circs = el.querySelectorAll('.pt');
+  const tip = document.getElementById('tooltip');
+  const mover = ev => {
+    const r = el.getBoundingClientRect();
+    const px = ev.clientX - r.left;
+    let k = 0;
+    posX.forEach((p, j) => { if (Math.abs(p - px) < Math.abs(posX[k] - px)) k = j; });
+    cruz.setAttribute('x1', posX[k]); cruz.setAttribute('x2', posX[k]); cruz.setAttribute('visibility', 'visible');
+    circs.forEach((c, j) => c.setAttribute('r', j === k ? 6.5 : (j === circs.length - 1 ? 5.5 : 4)));
+    const atual = serie[k].total;
+    let linha2 = '';
+    if (k > 0) {
+      const d = atual - serie[k - 1].total;
+      linha2 = `<br>${d < 0 ? '▼ ' + fmt(-d) : d > 0 ? '▲ ' + fmt(d) : 'sem variação'} vs ${dataCurta(serie[k - 1].data)}`;
+    }
+    tip.innerHTML = `${dataBR(serie[k].data)}<br><b>${fmt(atual)}</b> endpoints${linha2}`;
+    tip.hidden = false;
+    const tx = r.left + posX[k], ty = r.top + pts[k][1];
+    const larg = tip.offsetWidth;
+    tip.style.left = Math.min(window.innerWidth - larg - 8, Math.max(8, tx - larg / 2)) + 'px';
+    tip.style.top = Math.max(8, ty - tip.offsetHeight - 14) + 'px';
+  };
+  const sair = () => {
+    tip.hidden = true; cruz.setAttribute('visibility', 'hidden');
+    circs.forEach((c, j) => c.setAttribute('r', j === circs.length - 1 ? 5.5 : 4));
+  };
+  alvo.addEventListener('pointermove', mover);
+  alvo.addEventListener('pointerdown', mover);
+  alvo.addEventListener('pointerleave', sair);
+}
+
+function montarTabela(det, A) {
+  const { val, idx, ult, ant, datas } = A;
+  const linhas = A.grupos.map(g => {
+    const o = { g: g.g, cat: g.cat, p: purgeTxt(g.p), fora: g.fora };
+    idx.forEach(i => { o['v' + i] = val(g, i); });
+    o.d = ant === null || val(g, ant) === null || val(g, ult) === null ? null : val(g, ult) - val(g, ant);
+    return o;
+  });
+  const cols = [{ k: 'g', t: 'Grupo' }, { k: 'cat', t: 'Categoria' }, { k: 'p', t: 'Purge' },
+    ...idx.map(i => ({ k: 'v' + i, t: dataCurta(datas[i]), n: true })), { k: 'd', t: 'Var.', n: true }];
+  let ordem = { k: ult !== null ? 'v' + ult : 'g', dir: -1 };
+  let filtro = '';
+  const tabela = det.querySelector('table');
+  const desenhar = () => {
+    const f = semAcento(filtro);
+    const vis = linhas.filter(l => !f || semAcento(l.g).includes(f)).sort((a, b) => {
+      const x = a[ordem.k], y = b[ordem.k];
+      if (x === y) return 0;
+      if (x === null || x === undefined) return 1;
+      if (y === null || y === undefined) return -1;
+      return (typeof x === 'number' ? x - y : String(x).localeCompare(String(y), 'pt-BR')) * ordem.dir;
+    });
+    tabela.innerHTML = `<thead><tr>${cols.map(c => `<th class="${c.n ? 'n' : ''}" data-k="${c.k}" tabindex="0" aria-sort="${ordem.k === c.k ? (ordem.dir > 0 ? 'ascending' : 'descending') : 'none'}">${c.t}</th>`).join('')}</tr></thead>
+      <tbody>${vis.map(l => `<tr class="${l.fora ? 'fora' : ''}">
+        <td>${esc(l.g)}${l.fora ? `<span class="tag-fora">fora do total · ${l.fora}</span>` : ''}</td>
+        <td>${badge(l.cat)}</td><td>${esc(l.p)}</td>
+        ${idx.map(i => `<td class="n">${l['v' + i] === null ? '–' : fmt(l['v' + i])}</td>`).join('')}
+        <td class="n">${varHtml(l.d, false)}</td></tr>`).join('')}</tbody>`;
+    tabela.querySelectorAll('th').forEach(th => {
+      const clicar = () => {
+        const k = th.dataset.k;
+        ordem = ordem.k === k ? { k, dir: -ordem.dir } : { k, dir: (k === 'g' || k === 'cat' || k === 'p') ? 1 : -1 };
+        desenhar();
+      };
+      th.addEventListener('click', clicar);
+      th.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); clicar(); } });
+    });
+  };
+  det.querySelector('.filtro').addEventListener('input', e => { filtro = e.target.value; desenhar(); });
+  desenhar();
+}
+
+// ---------- leitura do .xlsx (sem biblioteca externa) ----------
+async function abrirZip(buf) {
+  const u8 = new Uint8Array(buf);
+  if (u8[0] === 0xD0 && u8[1] === 0xCF && u8[2] === 0x11 && u8[3] === 0xE0) throw new Error('PROTEGIDA');
+  if (!(u8[0] === 0x50 && u8[1] === 0x4B)) throw new Error('FORMATO');
+  const dv = new DataView(buf);
+  let fim = -1;
+  for (let i = u8.length - 22; i >= Math.max(0, u8.length - 65557); i--) {
+    if (dv.getUint32(i, true) === 0x06054b50) { fim = i; break; }
+  }
+  if (fim < 0) throw new Error('FORMATO');
+  const total = dv.getUint16(fim + 10, true);
+  let p = dv.getUint32(fim + 16, true);
+  const td = new TextDecoder();
+  const arqs = {};
+  for (let k = 0; k < total && dv.getUint32(p, true) === 0x02014b50; k++) {
+    const metodo = dv.getUint16(p + 10, true), tam = dv.getUint32(p + 20, true);
+    const nl = dv.getUint16(p + 28, true), el = dv.getUint16(p + 30, true), cl = dv.getUint16(p + 32, true);
+    const off = dv.getUint32(p + 42, true);
+    arqs[td.decode(u8.subarray(p + 46, p + 46 + nl))] = { metodo, tam, off };
+    p += 46 + nl + el + cl;
+  }
+  const chaves = Object.keys(arqs);
+  return async nome => {
+    const real = chaves.find(c => c.toLowerCase() === nome.toLowerCase());
+    if (!real) return null;
+    const a = arqs[real];
+    const ini = a.off + 30 + dv.getUint16(a.off + 26, true) + dv.getUint16(a.off + 28, true);
+    const bruto = u8.subarray(ini, ini + a.tam);
+    if (a.metodo === 0) return td.decode(bruto);
+    if (a.metodo !== 8) throw new Error('FORMATO');
+    if (typeof DecompressionStream === 'undefined') throw new Error('NAVEGADOR');
+    const fluxo = new Blob([bruto]).stream().pipeThrough(new DecompressionStream('deflate-raw'));
+    return await new Response(fluxo).text();
+  };
+}
+const xml = t => new DOMParser().parseFromString(t, 'application/xml');
+const tags = (n, nome) => Array.from(n.getElementsByTagNameNS('*', nome));
+const filho = (n, nome) => Array.from(n.children).find(c => c.localName === nome);
+function colIdx(ref) {
+  let n = 0;
+  for (const ch of ref) { const c = ch.charCodeAt(0); if (c < 65 || c > 90) break; n = n * 26 + (c - 64); }
+  return n - 1;
+}
+function caminho(alvo) {
+  if (alvo.startsWith('/')) return alvo.slice(1);
+  const partes = ('xl/' + alvo).split('/'), out = [];
+  partes.forEach(pt => { if (pt === '..') out.pop(); else if (pt && pt !== '.') out.push(pt); });
+  return out.join('/');
+}
+function paraData(c) {
+  if (typeof c === 'number' && c >= 36526 && c <= 73050) {
+    return new Date(Math.round((c - 25569) * 86400000)).toISOString().slice(0, 10);
+  }
+  if (typeof c !== 'string') return null;
+  let m = c.trim().match(/^(\d{1,2})[\/.\-](\d{1,2})[\/.\-](\d{2}|\d{4})$/);
+  if (m) {
+    const d = +m[1], mes = +m[2], a = m[3].length === 2 ? 2000 + +m[3] : +m[3];
+    if (mes < 1 || mes > 12 || d < 1 || d > 31) return null;
+    return `${a}-${String(mes).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+  }
+  m = c.trim().match(/^(\d{4})-(\d{2})-(\d{2})/);
+  return m ? `${m[1]}-${m[2]}-${m[3]}` : null;
+}
+function numero(x) {
+  if (typeof x === 'number') return isFinite(x) ? x : null;
+  if (typeof x !== 'string') return null;
+  let s = x.trim().replace(/\s/g, '');
+  if (!s || s === '-' || s === '–') return null;
+  if (/^-?\d{1,3}(\.\d{3})+$/.test(s)) s = s.replace(/\./g, '');
+  s = s.replace(',', '.');
+  return /^-?\d+(\.\d+)?$/.test(s) ? Number(s) : null;
+}
+
+async function lerPlanilha(arquivo) {
+  const ler = await abrirZip(await arquivo.arrayBuffer());
+  const wbTxt = await ler('xl/workbook.xml');
+  if (!wbTxt) throw new Error('FORMATO');
+  const wb = xml(wbTxt);
+  const rels = xml(await ler('xl/_rels/workbook.xml.rels') || '<r/>');
+  const alvo = {};
+  let ssPath = null;
+  tags(rels, 'Relationship').forEach(r => {
+    alvo[r.getAttribute('Id')] = r.getAttribute('Target');
+    if (/\/sharedStrings$/.test(r.getAttribute('Type') || '')) ssPath = caminho(r.getAttribute('Target'));
+  });
+  const sst = [];
+  const ssTxt = await ler(ssPath || 'xl/sharedStrings.xml');
+  if (ssTxt) tags(xml(ssTxt), 'si').forEach(si => {
+    sst.push(tags(si, 't').filter(t => t.parentNode.localName !== 'rPh').map(t => t.textContent).join(''));
+  });
+  const R = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships';
+  const abas = tags(wb, 'sheet').map(s => ({ nome: s.getAttribute('name'), rid: s.getAttributeNS(R, 'id') || s.getAttribute('r:id') }));
+
+  const avisos = [];
+  const ambientes = {};
+  for (const amb of CONFIG.ambientes) {
+    const aba = abas.find(a => amb.aba.test(semAcento(a.nome)));
+    if (!aba) { avisos.push(`não encontrei a aba de ${amb.nome} na planilha`); continue; }
+    const txt = await ler(caminho(alvo[aba.rid] || ''));
+    if (!txt) { avisos.push(`não consegui ler a aba ${aba.nome}`); continue; }
+    ambientes[amb.nome] = interpretarAba(xml(txt), sst, aba.nome, avisos);
+  }
+  if (!Object.keys(ambientes).length) throw new Error('SEM_ABAS');
+  return { exemplo: false, fonte: arquivo.name, carregadoEm: new Date().toISOString(), avisosLeitura: avisos, ambientes };
+}
+
+function interpretarAba(doc, sst, nomeAba, avisos) {
+  const linhas = [];
+  let cont = 0;
+  tags(doc, 'row').forEach(row => {
+    const r = row.getAttribute('r') ? +row.getAttribute('r') - 1 : cont;
+    cont = r + 1;
+    const arr = [];
+    Array.from(row.children).forEach(c => {
+      if (c.localName !== 'c') return;
+      const ref = c.getAttribute('r');
+      const col = ref ? colIdx(ref) : arr.length;
+      const t = c.getAttribute('t'), v = filho(c, 'v');
+      let valor = null;
+      if (t === 's') valor = v ? (sst[+v.textContent] ?? '') : '';
+      else if (t === 'inlineStr') valor = tags(c, 't').map(n => n.textContent).join('');
+      else if (t === 'str') valor = v ? v.textContent : '';
+      else if (t === 'b' || t === 'e') valor = null;
+      else valor = v && v.textContent !== '' ? Number(v.textContent) : null;
+      arr[col] = valor;
+    });
+    linhas[r] = arr;
+  });
+  const h = linhas.findIndex(r => r && r.some(c => typeof c === 'string' && semAcento(c) === 'grupo'));
+  if (h < 0) { avisos.push(`aba ${nomeAba}: não encontrei o cabeçalho GRUPO`); return { datas: [], grupos: [] }; }
+  const cab = linhas[h];
+  const col = { g: -1, u: -1, f: -1, p: -1, c: -1 };
+  const colDatas = [];
+  for (let i = 0; i < cab.length; i++) {
+    const c = cab[i];
+    if (c === null || c === undefined || c === '') continue;
+    const d = paraData(c);
+    if (d) {
+      if (colDatas.some(x => x.iso === d)) avisos.push(`aba ${nomeAba}: data ${dataBR(d)} repetida no cabeçalho — usei só a primeira coluna`);
+      else colDatas.push({ i, iso: d });
+      continue;
+    }
+    const n = semAcento(c);
+    if (n === 'grupo') col.g = i;
+    else if (n === 'uso') col.u = i;
+    else if (n.startsWith('funcao')) col.f = i;
+    else if (n.includes('purge')) col.p = i;
+    else if (n.startsWith('categoria')) col.c = i;
+    else if (linhas.slice(h + 1).some(r => r && numero(r[i]) !== null)) {
+      avisos.push(`aba ${nomeAba}: coluna "${c}" tem números, mas o cabeçalho não é data — ignorada (use dd/mm/aaaa)`);
+    }
+  }
+  colDatas.sort((a, b) => a.iso.localeCompare(b.iso));
+  const grupos = [];
+  for (let k = h + 1; k < linhas.length; k++) {
+    const r = linhas[k];
+    if (!r) continue;
+    const nome = r[col.g];
+    if (nome === null || nome === undefined || String(nome).trim() === '') continue;
+    const pega = i => (i >= 0 && r[i] !== null && r[i] !== undefined) ? String(r[i]).trim() : '';
+    grupos.push({ g: String(nome).trim(), u: pega(col.u), f: pega(col.f), p: pega(col.p), c: pega(col.c) || null,
+      v: colDatas.map(d => numero(r[d.i])) });
+  }
+  return { datas: colDatas.map(d => d.iso), grupos };
+}
+
+// ---------- botões ----------
+function aviso(txt, ms = 4500) {
+  const t = document.createElement('div');
+  t.className = 'toast'; t.setAttribute('role', 'status'); t.textContent = txt;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), ms);
+}
+const ERROS = {
+  PROTEGIDA: 'Essa planilha está criptografada (rótulo de confidencialidade com proteção) e o navegador não consegue abrir. Salve uma cópia com um rótulo que não criptografa e tente de novo.',
+  FORMATO: 'O arquivo não é um .xlsx válido. Salve a planilha como Pasta de Trabalho do Excel (.xlsx) e tente de novo.',
+  NAVEGADOR: 'Este navegador não consegue ler o .xlsx. Abra o painel no Edge ou no Chrome atualizado.',
+  SEM_ABAS: 'Não encontrei as abas Agências e Departamentos na planilha.',
+};
+document.getElementById('btn-atualizar').addEventListener('click', () => document.getElementById('arquivo').click());
+document.getElementById('arquivo').addEventListener('change', async e => {
+  const f = e.target.files[0];
+  e.target.value = '';
+  if (!f) return;
+  try {
+    DADOS = await lerPlanilha(f);
+    renderTudo();
+    aviso('Planilha carregada. Clique em Salvar para gerar o HTML atualizado e subir no OneDrive.', 6000);
+  } catch (err) {
+    console.error(err);
+    const msg = ERROS[err.message] || 'Não consegui ler a planilha: ' + err.message;
+    document.getElementById('mensagens').insertAdjacentHTML('afterbegin', `<div class="banner banner-erro">${esc(msg)}</div>`);
+  }
+});
+document.getElementById('btn-salvar').addEventListener('click', async () => {
+  const abre = '<scr' + 'ipt id="dados" type="application/json">', fecha = '</scr' + 'ipt>';
+  const i = ORIGINAL.indexOf(abre), j = ORIGINAL.indexOf(fecha, i);
+  const json = JSON.stringify(DADOS).replace(/</g, '\\u003c');
+  const html = ORIGINAL.slice(0, i + abre.length) + json + ORIGINAL.slice(j);
+  if (window.showSaveFilePicker) {
+    try {
+      const h = await window.showSaveFilePicker({ suggestedName: CONFIG.nomeArquivo,
+        types: [{ description: 'Página HTML', accept: { 'text/html': ['.html'] } }] });
+      const w = await h.createWritable();
+      await w.write(html); await w.close();
+      aviso('HTML salvo. Agora é só substituir o arquivo no OneDrive.');
+      return;
+    } catch (err) { if (err.name === 'AbortError') return; }
+  }
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([html], { type: 'text/html' }));
+  a.download = CONFIG.nomeArquivo;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+  aviso('HTML baixado. Agora é só substituir o arquivo no OneDrive.');
+});
+
+renderTudo();
+</script>
+</body>
+</html>
